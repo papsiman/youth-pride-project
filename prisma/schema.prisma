@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String          @id @default(cuid())
+  lineUserId    String          @unique
+  displayName   String?
+  realName      String?
+  phoneNumber   String?
+  registered    Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  progress      UserProgress[]
+  quizAnswers   QuizAnswer[]
+}
+
+model Checkpoint {
+  id              Int            @id @default(autoincrement())
+  name            String
+  totalQuestions  Int            @default(5)
+  progress        UserProgress[]
+}
+
+model UserProgress {
+  id           String     @id @default(cuid())
+  userId       String
+  checkpointId Int
+  completed    Boolean    @default(false)
+  completedAt  DateTime?
+  user         User       @relation(fields: [userId], references: [id])
+  checkpoint   Checkpoint @relation(fields: [checkpointId], references: [id])
+
+  @@unique([userId, checkpointId])
+}
+
+model QuizAnswer {
+  id           String     @id @default(cuid())
+  userId       String
+  checkpointId Int
+  questionIdx  Int
+  userAnswer   String
+  isCorrect    Boolean
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id])
+}
