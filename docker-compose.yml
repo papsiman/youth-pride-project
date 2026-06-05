@@ -23,8 +23,9 @@ services:
       MIN_POOL_SIZE: 20
       RESERVE_POOL_SIZE: 10
       POOL_MODE: transaction # สำคัญมากสำหรับ High TPS
+      AUTH_TYPE: scram-sha-256
     ports:
-      - "6432:6432"
+      - "6432:5432"
     depends_on:
       - db
 
@@ -36,7 +37,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: Admin_Pride2026_Secure
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     depends_on:
       - db
 

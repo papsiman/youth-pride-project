@@ -28,17 +28,26 @@ function HomeContent() {
     // 1. ตรวจสอบว่ามีระบุหน้ามาใน Query Param ไหม (เช่น ?page=dashboard)
     const targetPage = searchParams.get('page');
     
+    const sendMenuMessage = (text: string) => {
+      if (liff && liff.isInClient()) {
+        liff.sendMessages([{ type: 'text', text }]).catch((err) => console.error('Send message failed:', err));
+      }
+    };
+    
     if (targetPage) {
       if (targetPage === 'dashboard') {
+        sendMenuMessage('เช็คความคืบหน้า');
         router.replace('/dashboard');
         return;
       }
       if (targetPage === 'register') {
+        sendMenuMessage('ลงทะเบียนเข้าร่วมงาน');
         router.replace('/register');
         return;
       }
       if (targetPage.startsWith('quiz')) {
-        const id = targetPage.replace('quiz', '');
+        const id = targetPage.replace('quiz', '').replace('/', '');
+        sendMenuMessage(`เข้าฐานที่ ${id}`);
         router.replace(`/quiz/${id}`);
         return;
       }
