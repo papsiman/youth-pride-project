@@ -5,7 +5,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
+      POSTGRES_PASSWORD: PrideDB_Secure_Pass2026_xYz
       POSTGRES_DB: pridedb
     ports:
       - "5435:5432" # External port changed to 5435
@@ -17,7 +17,7 @@ services:
     container_name: pride-pgbouncer
     restart: always
     environment:
-      DATABASE_URL: "postgresql://postgres:password123@db:5432/pridedb"
+      DATABASE_URL: "postgresql://postgres:PrideDB_Secure_Pass2026_xYz@db:5432/pridedb"
       MAX_CLIENT_CONN: 10000
       DEFAULT_POOL_SIZE: 50
       MIN_POOL_SIZE: 20
@@ -34,7 +34,7 @@ services:
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_PASSWORD: Admin_Pride2026_Secure
     ports:
       - "8080:80"
     depends_on:
