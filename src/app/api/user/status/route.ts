@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
         completed: userCp?.completed || false,
         completedAt: userCp?.completedAt || null,
         score: correctCount,
-        total: answersForCp.length > 0 ? answersForCp.length : (cp.id === 2 ? 10 : 5)
+        total: answersForCp.length > 0 ? answersForCp.length : (cp.id === 3 ? 10 : 5)
       };
     });
 

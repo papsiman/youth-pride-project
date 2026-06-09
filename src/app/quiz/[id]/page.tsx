@@ -20,7 +20,7 @@ const QUESTIONS_DATA: Record<number, Question[]> = {
     { text: "วัยรุ่นสามารถเข้าถึงบริการสุขภาพทางเพศได้โดยไม่ถูกเลือกปฏิบัติและเป็นความลับ", type: 'yesno', correctAnswer: 'true' },
     { text: "หากวัยรุ่นตั้งครรภ์รู้สึกอับอายไม่อยากอยู่บ้านสามารถขอไปอยู่บ้านพักเด็กได้โดยไม่มีค่าใช้จ่าย", type: 'yesno', correctAnswer: 'true' },
   ],
-  2: [
+  3: [
     { text: "กรมสุขภาพจิตอยู่ภายใต้กระทรวงสาธารณสุข", type: 'yesno', correctAnswer: 'true' },
     { text: "คนที่ยิ้มเก่งตลอดเวลา จะไม่มีความเครียดเลย", type: 'yesno', correctAnswer: 'false' },
     { text: "การนอนหลับไม่เพียงพอ อาจส่งผลต่อสุขภาพจิตได้", type: 'yesno', correctAnswer: 'true' },
@@ -32,7 +32,7 @@ const QUESTIONS_DATA: Record<number, Question[]> = {
     { text: "กรมสุขภาพจิตมีการรณรงค์ส่งเสริมสุขภาพจิตในชุมชน", type: 'yesno', correctAnswer: 'true' },
     { text: "การขอคำปรึกษาจากนักจิตวิทยาหรือจิตแพทย์เป็นเรื่องปกติ", type: 'yesno', correctAnswer: 'true' },
   ],
-  3: [
+  2: [
     { 
       text: "HIV ทำลายระบบใดของร่างกาย", 
       type: 'choice', 
