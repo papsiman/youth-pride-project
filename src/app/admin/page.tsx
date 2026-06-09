@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, AlertTriangle, Loader2, Users, Search, Lock, Mail, Key } from 'lucide-react';
+import { Trash2, AlertTriangle, Loader2, Users, Search, Lock, Mail, Key, RotateCcw } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -25,7 +25,7 @@ export default function AdminPage() {
   const [fetchingUsers, setFetchingUsers] = useState(true);
   const [users, setUsers] = useState<UserData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [status, setStatus] = useState<{ type: 'success' | 'error', message: string, details?: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -83,18 +83,18 @@ export default function AdminPage() {
         setStatus({ type: 'success', message: 'ลบข้อมูลทั้งหมดเรียบร้อยแล้ว' });
         fetchUsers();
       } else {
-        setStatus({ type: 'error', message: data.error || 'เกิดข้อผิดพลาดในการลบข้อมูล' });
+        setStatus({ type: 'error', message: data.error || 'เกิดข้อผิดพลาดในการลบข้อมูล', details: data.details });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Clear data error:', err);
-      setStatus({ type: 'error', message: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้' });
+      setStatus({ type: 'error', message: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', details: err?.message });
     } finally {
       setLoading(false);
     }
   };
 
   const handleClearUser = async (userId: string, name: string) => {
-    const confirmed = window.confirm(`คุณต้องการลบข้อมูลของ ${name} ใช่หรือไม่?`);
+    const confirmed = window.confirm(`คุณต้องการลบข้อมูลและแอดเคาน์ของ ${name} ใช่หรือไม่?`);
     if (!confirmed) return;
 
     setLoading(true);
@@ -110,14 +110,44 @@ export default function AdminPage() {
       const data = await res.json();
       
       if (res.ok && data.success) {
-        setStatus({ type: 'success', message: `ลบข้อมูลของ ${name} เรียบร้อยแล้ว` });
+        setStatus({ type: 'success', message: `ลบ User ของ ${name} เรียบร้อยแล้ว` });
         fetchUsers();
       } else {
-        setStatus({ type: 'error', message: data.error || 'เกิดข้อผิดพลาดในการลบข้อมูล' });
+        setStatus({ type: 'error', message: data.error || 'เกิดข้อผิดพลาดในการลบข้อมูล', details: data.details });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Clear user error:', err);
-      setStatus({ type: 'error', message: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้' });
+      setStatus({ type: 'error', message: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', details: err?.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearUserProgress = async (userId: string, name: string) => {
+    const confirmed = window.confirm(`คุณต้องการลบแค่ประวัติการเล่นและคำตอบฐานของ ${name} ใช่หรือไม่? (บัญชีผู้ใช้จะยังอยู่)`);
+    if (!confirmed) return;
+
+    setLoading(true);
+    setStatus(null);
+
+    try {
+      const res = await fetch('/api/admin/clear-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        setStatus({ type: 'success', message: `ลบคำตอบฐานของ ${name} เรียบร้อยแล้ว` });
+        fetchUsers();
+      } else {
+        setStatus({ type: 'error', message: data.error || 'เกิดข้อผิดพลาดในการลบข้อมูล', details: data.details });
+      }
+    } catch (err: any) {
+      console.error('Clear progress error:', err);
+      setStatus({ type: 'error', message: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', details: err?.message });
     } finally {
       setLoading(false);
     }
@@ -254,6 +284,11 @@ export default function AdminPage() {
           fontWeight: 600
         }}>
           {status.message}
+          {status.details && (
+            <div style={{ fontSize: '0.8rem', marginTop: '4px', opacity: 0.8 }}>
+              {status.details}
+            </div>
+          )}
         </div>
       )}
 
@@ -344,26 +379,49 @@ export default function AdminPage() {
                     <td style={{ padding: '12px 8px' }}>{user.phoneNumber || '-'}</td>
                     <td style={{ padding: '12px 8px' }}>{user._count.progress} ฐาน</td>
                     <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                      <button 
-                        onClick={() => handleClearUser(user.id, user.realName || user.displayName || 'ผู้ใช้นี้')}
-                        disabled={loading}
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          color: '#ef4444',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontWeight: 600,
-                          cursor: loading ? 'not-allowed' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          opacity: loading ? 0.7 : 1,
-                        }}
-                      >
-                        <Trash2 size={14} />
-                        ลบ
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={() => handleClearUserProgress(user.id, user.realName || user.displayName || 'ผู้ใช้นี้')}
+                          disabled={loading}
+                          style={{
+                            background: 'rgba(251, 191, 36, 0.1)',
+                            color: '#d97706',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontWeight: 600,
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            opacity: loading ? 0.7 : 1,
+                          }}
+                          title="ลบเฉพาะคำตอบฐาน"
+                        >
+                          <RotateCcw size={14} />
+                          ลบคำตอบ
+                        </button>
+                        <button 
+                          onClick={() => handleClearUser(user.id, user.realName || user.displayName || 'ผู้ใช้นี้')}
+                          disabled={loading}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            color: '#ef4444',
+                            border: 'none',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontWeight: 600,
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            opacity: loading ? 0.7 : 1,
+                          }}
+                        >
+                          <Trash2 size={14} />
+                          ลบ user
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
