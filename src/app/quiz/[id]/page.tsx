@@ -88,8 +88,15 @@ export default function Quiz() {
       router.push('/');
     } else if (isLoggedIn && profile) {
       checkUserAndCheckpointStatus();
+      if (liff?.isInClient()) {
+        const sent = sessionStorage.getItem(`sent_msg_quiz_${checkpointId}`);
+        if (!sent) {
+          liff.sendMessages([{ type: 'text', text: `เข้าฐานที่ ${checkpointId}` }]).catch(e => console.log('Send msg error:', e));
+          sessionStorage.setItem(`sent_msg_quiz_${checkpointId}`, 'true');
+        }
+      }
     }
-  }, [isLoggedIn, profile, router, id]);
+  }, [isLoggedIn, profile, router, id, checkpointId, liff]);
 
   const checkUserAndCheckpointStatus = async () => {
     try {

@@ -23,8 +23,15 @@ export default function Dashboard() {
   useEffect(() => {
     if (isLoggedIn && profile) {
       fetchProgress();
+      if (liff?.isInClient()) {
+        const sent = sessionStorage.getItem('sent_msg_dashboard');
+        if (!sent) {
+          liff.sendMessages([{ type: 'text', text: 'เช็คความคืบหน้า' }]).catch(e => console.log('Send msg error:', e));
+          sessionStorage.setItem('sent_msg_dashboard', 'true');
+        }
+      }
     }
-  }, [isLoggedIn, profile]);
+  }, [isLoggedIn, profile, liff]);
 
   const fetchProgress = async () => {
     try {

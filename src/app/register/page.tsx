@@ -21,8 +21,15 @@ export default function Register() {
       router.push('/');
     } else if (isLoggedIn && profile) {
       checkStatus();
+      if (liff?.isInClient()) {
+        const sent = sessionStorage.getItem('sent_msg_register');
+        if (!sent) {
+          liff.sendMessages([{ type: 'text', text: 'ลงทะเบียนเข้าร่วมงาน' }]).catch(e => console.log('Send msg error:', e));
+          sessionStorage.setItem('sent_msg_register', 'true');
+        }
+      }
     }
-  }, [isLoggedIn, profile, router]);
+  }, [isLoggedIn, profile, router, liff]);
 
   const checkStatus = async () => {
     try {
