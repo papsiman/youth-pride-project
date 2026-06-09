@@ -9,8 +9,8 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   const checkpoints = [
     { name: 'ศูนย์อนามัยที่ 7' },
-    { name: 'ศูนย์สุขภาพจิตที่ 7' },
     { name: 'สำนักงานป้องกันควบคุมโรคที่ 7' },
+    { name: 'ศูนย์สุขภาพจิตที่ 7' },
   ]
 
   console.log('Seeding checkpoints...')
@@ -18,7 +18,7 @@ async function main() {
   for (const cp of checkpoints) {
     await prisma.checkpoint.upsert({
       where: { id: checkpoints.indexOf(cp) + 1 },
-      update: {},
+      update: { name: cp.name },
       create: {
         id: checkpoints.indexOf(cp) + 1,
         name: cp.name,
