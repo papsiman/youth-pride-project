@@ -78,6 +78,7 @@ export default function Quiz() {
   const [completed, setCompleted] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [checkpointName, setCheckpointName] = useState(`ฐานที่ ${id}`);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const questions = QUESTIONS_DATA[checkpointId] || QUESTIONS_DATA[3];
 
@@ -112,8 +113,16 @@ export default function Quiz() {
   };
 
   const handleAnswer = (answer: string) => {
-    const newAnswers = [...userAnswers, answer];
+    if (selectedAnswer !== null) return; // Prevent changing answer
+    setSelectedAnswer(answer);
+  };
+
+  const handleNext = () => {
+    if (selectedAnswer === null) return;
+    
+    const newAnswers = [...userAnswers, selectedAnswer];
     setUserAnswers(newAnswers);
+    setSelectedAnswer(null);
     
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -203,6 +212,35 @@ export default function Quiz() {
   }
 
   const currentQuestion = questions[currentStep];
+  const isAnswered = selectedAnswer !== null;
+
+  const getOptionStyle = (optionValue: string) => {
+    if (!isAnswered) return {};
+    const isCorrectAnswer = currentQuestion.correctAnswer === optionValue;
+    const isSelected = selectedAnswer === optionValue;
+
+    if (isCorrectAnswer) {
+      return { borderColor: '#10b981', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' };
+    }
+    if (isSelected && !isCorrectAnswer) {
+      return { borderColor: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' };
+    }
+    return { opacity: 0.5 };
+  };
+
+  const getOptionIcon = (optionValue: string, defaultIcon: React.ReactNode) => {
+    if (!isAnswered) return defaultIcon;
+    const isCorrectAnswer = currentQuestion.correctAnswer === optionValue;
+    const isSelected = selectedAnswer === optionValue;
+
+    if (isCorrectAnswer) {
+      return <CheckCircle2 size={32} color="#10b981" />;
+    }
+    if (isSelected && !isCorrectAnswer) {
+      return <XCircle size={32} color="#ef4444" />;
+    }
+    return defaultIcon;
+  };
 
   return (
     <main className="animate-fade-in">
@@ -212,7 +250,7 @@ export default function Quiz() {
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ height: '8px', background: 'var(--input-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: 'var(--primary-gradient)', width: `${((currentStep + 1) / questions.length) * 100}%`, transition: 'width 0.3s ease' }} />
+            <div style={{ height: '100%', background: 'var(--primary-gradient)', width: `${((currentStep) / questions.length) * 100}%`, transition: 'width 0.3s ease' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
             <span>{currentStep + 1} / {questions.length}</span>
@@ -228,56 +266,94 @@ export default function Quiz() {
 
         {currentQuestion.type === 'yesno' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <button onClick={() => handleAnswer('true')} disabled={submitting} className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '24px', cursor: 'pointer', border: '2px solid transparent' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-                <CheckCircle2 size={32} />
+            <button 
+              onClick={() => handleAnswer('true')} 
+              disabled={submitting || isAnswered} 
+              className="card option-btn" 
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '24px', cursor: isAnswered ? 'default' : 'pointer', border: '2px solid transparent', transition: 'all 0.3s', ...getOptionStyle('true') }}
+            >
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: isAnswered ? 'transparent' : 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isAnswered ? 'inherit' : 'var(--primary)' }}>
+                {getOptionIcon('true', <CheckCircle2 size={32} />)}
               </div>
-              <span style={{ fontWeight: 800, fontSize: '1.2rem' }}>ใช่</span>
+              <span style={{ fontWeight: 800, fontSize: '1.2rem', color: isAnswered ? 'inherit' : 'var(--text-main)' }}>ใช่</span>
             </button>
-            <button onClick={() => handleAnswer('false')} disabled={submitting} className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '24px', cursor: 'pointer', border: '2px solid transparent' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
-                <XCircle size={32} />
+            <button 
+              onClick={() => handleAnswer('false')} 
+              disabled={submitting || isAnswered} 
+              className="card option-btn" 
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '24px', cursor: isAnswered ? 'default' : 'pointer', border: '2px solid transparent', transition: 'all 0.3s', ...getOptionStyle('false') }}
+            >
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: isAnswered ? 'transparent' : 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isAnswered ? 'inherit' : '#ef4444' }}>
+                {getOptionIcon('false', <XCircle size={32} />)}
               </div>
-              <span style={{ fontWeight: 800, fontSize: '1.2rem' }}>ไม่ใช่</span>
+              <span style={{ fontWeight: 800, fontSize: '1.2rem', color: isAnswered ? 'inherit' : 'var(--text-main)' }}>ไม่ใช่</span>
             </button>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {currentQuestion.options?.map((option, idx) => (
-              <button 
-                key={idx} 
-                onClick={() => handleAnswer(idx.toString())} 
-                disabled={submitting} 
-                className="card option-btn"
-                style={{ 
-                  textAlign: 'left', 
-                  padding: '20px', 
-                  fontSize: '1.1rem', 
-                  fontWeight: 600, 
-                  cursor: 'pointer',
-                  border: '2px solid transparent',
-                  background: 'var(--card-bg)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--input-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', color: 'var(--primary)', flexShrink: 0 }}>
-                  {String.fromCharCode(65 + idx)}
-                </div>
-                {option}
-              </button>
-            ))}
+            {currentQuestion.options?.map((option, idx) => {
+              const optValue = idx.toString();
+              const style = getOptionStyle(optValue);
+              
+              let icon = null;
+              if (isAnswered) {
+                const isCorrect = currentQuestion.correctAnswer === optValue;
+                const isSel = selectedAnswer === optValue;
+                if (isCorrect) icon = <CheckCircle2 size={24} color="#10b981" />;
+                else if (isSel) icon = <XCircle size={24} color="#ef4444" />;
+              }
+
+              return (
+                <button 
+                  key={idx} 
+                  onClick={() => handleAnswer(optValue)} 
+                  disabled={submitting || isAnswered} 
+                  className="card option-btn"
+                  style={{ 
+                    textAlign: 'left', 
+                    padding: '20px', 
+                    fontSize: '1.1rem', 
+                    fontWeight: 600, 
+                    cursor: isAnswered ? 'default' : 'pointer',
+                    border: '2px solid transparent',
+                    background: 'var(--card-bg)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'all 0.3s',
+                    ...style
+                  }}
+                >
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isAnswered && style.color ? 'transparent' : 'var(--input-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', color: isAnswered && style.color ? style.color : 'var(--primary)', flexShrink: 0 }}>
+                    {isAnswered && icon ? icon : String.fromCharCode(65 + idx)}
+                  </div>
+                  <span style={{ flex: 1, color: isAnswered && style.color ? style.color : 'inherit' }}>{option}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {isAnswered && (
+          <div className="animate-fade-in" style={{ marginTop: '16px' }}>
+            <button 
+              onClick={handleNext} 
+              disabled={submitting}
+              className="btn-primary" 
+              style={{ width: '100%', padding: '16px', fontSize: '1.1rem', fontWeight: 700 }}
+            >
+              {currentStep < questions.length - 1 ? 'ข้อต่อไป' : 'ส่งคำตอบ'}
+            </button>
           </div>
         )}
       </section>
 
       <style jsx>{`
-        .option-btn:hover {
+        .option-btn:not(:disabled):hover {
           border-color: var(--primary) !important;
           background: rgba(139, 92, 246, 0.05) !important;
         }
-        .option-btn:active {
+        .option-btn:not(:disabled):active {
           transform: scale(0.98);
         }
       `}</style>
