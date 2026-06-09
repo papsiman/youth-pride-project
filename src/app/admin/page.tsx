@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, AlertTriangle, Loader2, Users, Search } from 'lucide-react';
+import { Trash2, AlertTriangle, Loader2, Users, Search, Lock, Mail, Key } from 'lucide-react';
 
 interface UserData {
   id: string;
@@ -16,6 +16,11 @@ interface UserData {
 }
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [fetchingUsers, setFetchingUsers] = useState(true);
   const [users, setUsers] = useState<UserData[]>([]);
@@ -24,8 +29,25 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetchUsers();
+    // Check if already authenticated in session
+    const auth = sessionStorage.getItem('adminAuth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+      fetchUsers();
+    }
   }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email === 'admin@admin.com' && password === 'Admin_Pride2026_Secure') {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('adminAuth', 'true');
+      setLoginError('');
+      fetchUsers();
+    } else {
+      setLoginError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    }
+  };
 
   const fetchUsers = async () => {
     setFetchingUsers(true);
@@ -101,6 +123,80 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('adminAuth');
+    setIsAuthenticated(false);
+    setEmail('');
+    setPassword('');
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px' }}>
+        <form onSubmit={handleLogin} className="card" style={{ padding: '40px 24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+          <div style={{ width: '64px', height: '64px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: 'var(--primary)' }}>
+            <Lock size={32} />
+          </div>
+          <h1 style={{ marginBottom: '8px', fontSize: '1.5rem', fontWeight: 800 }}>Admin Login</h1>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>กรุณาเข้าสู่ระบบเพื่อจัดการข้อมูล</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                <Mail size={20} />
+              </div>
+              <input 
+                type="email" 
+                placeholder="Email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input-field"
+                style={{ paddingLeft: '48px', width: '100%' }}
+                required
+              />
+            </div>
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>
+                <Key size={20} />
+              </div>
+              <input 
+                type="password" 
+                placeholder="Password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-field"
+                style={{ paddingLeft: '48px', width: '100%' }}
+                required
+              />
+            </div>
+            
+            {loginError && (
+              <div style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 600, textAlign: 'left', paddingLeft: '8px' }}>
+                {loginError}
+              </div>
+            )}
+          </div>
+
+          <button 
+            type="submit"
+            className="btn-primary"
+            style={{ width: '100%', padding: '16px', fontSize: '1.1rem', fontWeight: 700 }}
+          >
+            เข้าสู่ระบบ
+          </button>
+          
+          <button 
+            type="button"
+            onClick={() => router.push('/')}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', marginTop: '24px', fontWeight: 600, cursor: 'pointer' }}
+          >
+            กลับหน้าหลัก
+          </button>
+        </form>
+      </main>
+    );
+  }
+
   const filteredUsers = users.filter(user => {
     const query = searchQuery.toLowerCase();
     const matchRealName = user.realName?.toLowerCase().includes(query);
@@ -116,20 +212,36 @@ export default function AdminPage() {
           <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>จัดการระบบ (Admin)</h1>
           <p style={{ color: 'var(--text-muted)' }}>รีเซ็ตข้อมูลทั้งหมด หรือลบเป็นรายบุคคล</p>
         </div>
-        <button 
-          onClick={() => router.push('/')}
-          style={{
-            background: 'var(--input-bg)',
-            border: 'none',
-            borderRadius: '8px',
-            color: 'var(--text-main)',
-            fontWeight: 600,
-            cursor: 'pointer',
-            padding: '8px 16px'
-          }}
-        >
-          กลับหน้าหลัก
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={handleLogout}
+            style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#ef4444',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: '8px 16px'
+            }}
+          >
+            ออกจากระบบ
+          </button>
+          <button 
+            onClick={() => router.push('/')}
+            style={{
+              background: 'var(--input-bg)',
+              border: 'none',
+              borderRadius: '8px',
+              color: 'var(--text-main)',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: '8px 16px'
+            }}
+          >
+            กลับหน้าหลัก
+          </button>
+        </div>
       </header>
 
       {status && (
