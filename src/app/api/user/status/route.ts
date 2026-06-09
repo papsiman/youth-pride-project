@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
             checkpoint: true,
           },
         },
+        quizAnswers: true,
       },
     });
 
@@ -30,13 +31,19 @@ export async function GET(req: NextRequest) {
     
     const progressStatus = allCheckpoints.map(cp => {
       const userCp = user.progress.find(p => p.checkpointId === cp.id);
+      const answersForCp = user.quizAnswers.filter(a => a.checkpointId === cp.id);
+      const correctCount = answersForCp.filter(a => a.isCorrect).length;
+
       return {
         checkpointId: cp.id,
         name: cp.name,
         completed: userCp?.completed || false,
         completedAt: userCp?.completedAt || null,
+        score: correctCount,
+        total: answersForCp.length > 0 ? answersForCp.length : (cp.id === 2 ? 10 : 5)
       };
     });
+
 
     return NextResponse.json({
       registered: user.registered,

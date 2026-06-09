@@ -10,6 +10,8 @@ interface Checkpoint {
   name: string;
   completed: boolean;
   completedAt: string | null;
+  score?: number;
+  total?: number;
 }
 
 export default function Dashboard() {
@@ -81,7 +83,8 @@ export default function Dashboard() {
           alignItems: 'end'
         }}>
           {[1, 2, 3].map((id) => {
-            const isCompleted = progress.find(p => p.checkpointId === id)?.completed;
+            const p = progress.find(p => p.checkpointId === id);
+            const isCompleted = p?.completed;
             return (
               <div key={id} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Trophy 
@@ -95,12 +98,17 @@ export default function Dashboard() {
                   }}
                 />
                 <span style={{ 
-                  fontSize: '0.65rem', 
+                  fontSize: '0.75rem', 
                   color: isCompleted ? '#fef3c7' : '#94a3b8',
                   fontWeight: 800,
                   textTransform: 'uppercase'
                 }}>
                   Base {id}
+                  {isCompleted && p?.total && (
+                    <div style={{ fontSize: '0.65rem', opacity: 0.9, marginTop: '2px' }}>
+                      ({p.score}/{p.total})
+                    </div>
+                  )}
                 </span>
               </div>
             );
