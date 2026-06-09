@@ -79,6 +79,7 @@ export default function Quiz() {
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [checkpointName, setCheckpointName] = useState(`ฐานที่ ${id}`);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [score, setScore] = useState<number>(0);
 
   const questions = QUESTIONS_DATA[checkpointId] || QUESTIONS_DATA[3];
 
@@ -144,6 +145,8 @@ export default function Quiz() {
       };
     });
 
+    setScore(results.filter(r => r.isCorrect).length);
+
     try {
       const res = await fetch('/api/user/progress', {
         method: 'POST',
@@ -195,21 +198,32 @@ export default function Quiz() {
 
   if (completed) {
     return (
-      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '48px 24px', width: '100%', maxWidth: '400px' }}>
           <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: 'var(--success)' }}>
             <Sparkles size={40} />
           </div>
-          <h1>ทำภารกิจสำเร็จ!</h1>
-          <p>คุณได้ตอบคำถามใน {checkpointName} <br/> ครบถ้วนและบันทึกข้อมูลเรียบร้อยแล้ว!</p>
-          <button onClick={closeLiff} className="btn-primary" style={{ marginTop: '32px' }}>ปิดหน้าต่างนี้</button>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', marginTop: '16px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px' }}>ทำภารกิจสำเร็จ!</h1>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>คุณได้ตอบคำถามใน {checkpointName} <br/> ครบถ้วนและบันทึกข้อมูลเรียบร้อยแล้ว!</p>
+          
+          <div style={{ padding: '24px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '16px', marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '8px' }}>สรุปคะแนนของคุณ</h2>
+            <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary)' }}>
+              {score} <span style={{ fontSize: '1.2rem', color: 'var(--text-muted)', fontWeight: 600 }}>/ {questions.length}</span>
+            </div>
+          </div>
+
+          <button onClick={closeLiff} className="btn-primary" style={{ width: '100%', padding: '16px', fontSize: '1.1rem', fontWeight: 700 }}>
+            ปิดหน้าต่างนี้
+          </button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', marginTop: '24px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' }}>
             ไปดูตู้สะสมถ้วยรางวัล
           </button>
         </div>
       </main>
     );
   }
+
 
   const currentQuestion = questions[currentStep];
   const isAnswered = selectedAnswer !== null;
