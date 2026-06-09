@@ -25,33 +25,19 @@ function HomeContent() {
   }, [liff, isLoggedIn, profile]);
 
   const handleRouting = async () => {
-    // 1. ตรวจสอบว่ามีระบุหน้ามาใน Query Param ไหม (เช่น ?page=dashboard)
     const targetPage = searchParams.get('page');
-    
-    const sendMenuMessage = async (text: string) => {
-      if (liff && liff.isInClient()) {
-        try {
-          await liff.sendMessages([{ type: 'text', text }]);
-        } catch (err) {
-          console.error('Send message failed:', err);
-        }
-      }
-    };
     
     if (targetPage) {
       if (targetPage === 'dashboard') {
-        await sendMenuMessage('เช็คความคืบหน้า');
         router.replace('/dashboard');
         return;
       }
       if (targetPage === 'register') {
-        await sendMenuMessage('ลงทะเบียนเข้าร่วมงาน');
         router.replace('/register');
         return;
       }
       if (targetPage.startsWith('quiz')) {
         const id = targetPage.replace('quiz', '').replace('/', '');
-        await sendMenuMessage(`เข้าฐานที่ ${id}`);
         router.replace(`/quiz/${id}`);
         return;
       }
