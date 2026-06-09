@@ -116,7 +116,7 @@ export default function Register() {
             <CheckCircle2 size={40} />
           </div>
           <h1>Registration Success!</h1>
-          <p>ยินดีด้วย! คุณลงทะเบียนเข้าร่วมโครงการ <br/> Youth Pride Project 2026 เรียบร้อยแล้ว</p>
+          <p>ยินดีด้วย! คุณลงทะเบียนเข้าร่วมโครงการ <br/> KhonKaen Youth&Pride 2026 เรียบร้อยแล้ว</p>
           
           <button onClick={closeLiff} className="btn-primary" style={{ marginTop: '32px' }}>
             Close Window
@@ -144,7 +144,7 @@ export default function Register() {
             <User size={32} />
           </div>
           <h1>Registration</h1>
-          <p>Join the Youth Pride Project journey</p>
+          <p>Join the KhonKaen Youth&Pride 2026 journey</p>
         </header>
 
         <form onSubmit={handleSubmit}>

@@ -1,14 +1,15 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import type { Metadata } from "next";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
 
-export const metadata = {
-  title: "Youth Pride Project 2026",
-  description: "Join our journey and celebrate pride together!",
+export const metadata: Metadata = {
+  title: "KhonKaen Youth&Pride 2026",
+  description: "กิจกรรมฐานประลองความรู้ ความเข้าใจในประเด็นความหลากหลายทางเพศ สิทธิทางเพศ สุขภาวะทางเพศ และอื่นๆที่เกี่ยวข้อง",
 };
 
 import { LiffProvider } from "@/providers/LiffProvider";

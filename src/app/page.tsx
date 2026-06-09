@@ -76,7 +76,7 @@ function HomeContent() {
   return (
     <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-        <h1 style={{ marginBottom: '24px' }}>Youth Pride 2026</h1>
+        <h1 style={{ marginBottom: '24px' }}>KhonKaen Youth&Pride 2026</h1>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
           <Loader2 className="animate-spin" size={48} color="var(--primary)" />
           <p style={{ color: 'var(--text-muted)' }}>Initializing your experience...</p>
