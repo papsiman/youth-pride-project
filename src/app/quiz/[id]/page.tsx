@@ -77,17 +77,21 @@ export default function Quiz() {
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
+  const [latestScore, setLatestScore] = useState<number>(0);
+  const [latestTotal, setLatestTotal] = useState<number>(0);
   const [checkpointName, setCheckpointName] = useState(`ฐานที่ ${id}`);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState<number>(0);
 
-  const questions = QUESTIONS_DATA[checkpointId] || QUESTIONS_DATA[3];
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
 
   useEffect(() => {
     if (isLoggedIn === false) {
       router.push('/');
     } else if (isLoggedIn && profile) {
       checkUserAndCheckpointStatus();
+      fetchQuestions();
       if (liff?.isInClient()) {
         const sent = sessionStorage.getItem(`sent_msg_quiz_${checkpointId}`);
         if (!sent) {
@@ -97,6 +101,20 @@ export default function Quiz() {
       }
     }
   }, [isLoggedIn, profile, router, id, checkpointId, liff]);
+
+  const fetchQuestions = async () => {
+    try {
+      const res = await fetch(`/api/questions?checkpointId=${checkpointId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setQuestions(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
 
   const checkUserAndCheckpointStatus = async () => {
     try {
@@ -113,6 +131,8 @@ export default function Quiz() {
         setCheckpointName(checkpoint.name);
         if (checkpoint.completed) {
           setAlreadyCompleted(true);
+          setLatestScore(checkpoint.score || 0);
+          setLatestTotal(checkpoint.total || 0);
         }
       }
     } catch (error) {
@@ -190,14 +210,38 @@ export default function Quiz() {
 
   if (alreadyCompleted) {
     return (
-      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '48px 24px', width: '100%', maxWidth: '400px' }}>
           <div style={{ width: '80px', height: '80px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: '#fbbf24' }}>
             <Trophy size={40} />
           </div>
-          <h1>ทำสำเร็จแล้ว!</h1>
-          <p>คุณได้ทำภารกิจใน {checkpointName} เรียบร้อยแล้ว <br/> ไปสะสมถ้วยรางวัลในฐานอื่นต่อได้เลย!</p>
-          <button onClick={closeLiff} className="btn-primary" style={{ marginTop: '32px' }}>ปิดหน้าต่างนี้</button>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px' }}>ทำสำเร็จแล้ว!</h1>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>คุณได้ทำภารกิจใน {checkpointName} เรียบร้อยแล้ว</p>
+          
+          {latestTotal > 0 && (
+            <div style={{ padding: '24px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '16px', marginBottom: '32px' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#d97706', marginBottom: '8px' }}>คะแนนล่าสุดของคุณ</h2>
+              <div style={{ fontSize: '3rem', fontWeight: 900, color: '#d97706' }}>
+                {latestScore} <span style={{ fontSize: '1.2rem', opacity: 0.8, fontWeight: 600 }}>/ {latestTotal}</span>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <button onClick={() => {
+              setAlreadyCompleted(false);
+              setCurrentStep(0);
+              setUserAnswers([]);
+              setSelectedAnswer(null);
+              setScore(0);
+              setCompleted(false);
+            }} className="btn-primary" style={{ width: '100%', padding: '16px', fontSize: '1.1rem', fontWeight: 700 }}>
+              ทำแบบทดสอบอีกครั้ง
+            </button>
+            <button onClick={closeLiff} className="btn-primary" style={{ background: 'var(--text-main)', width: '100%', padding: '16px', fontSize: '1.1rem', fontWeight: 700 }}>
+              ปิดหน้าต่างนี้
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -234,6 +278,26 @@ export default function Quiz() {
 
   const currentQuestion = questions[currentStep];
   const isAnswered = selectedAnswer !== null;
+
+  if (loadingQuestions) {
+    return (
+      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <Loader2 className="animate-spin" size={48} color="var(--primary)" />
+      </main>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <main className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '48px 24px', width: '100%', maxWidth: '400px' }}>
+          <h2>ยังไม่มีคำถาม</h2>
+          <p>แอดมินยังไม่ได้เพิ่มคำถามในฐานนี้</p>
+          <button onClick={() => router.push('/dashboard')} className="btn-primary" style={{ marginTop: '24px' }}>กลับหน้าแรก</button>
+        </div>
+      </main>
+    );
+  }
 
   const getOptionStyle = (optionValue: string) => {
     if (!isAnswered) return {};

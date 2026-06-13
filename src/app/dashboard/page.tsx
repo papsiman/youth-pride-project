@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiff } from '@/providers/LiffProvider';
-import { Trophy, CheckCircle, MapPin, Loader2, Award } from 'lucide-react';
+import { Trophy, CheckCircle, MapPin, Loader2, Award, Star } from 'lucide-react';
 
 interface Checkpoint {
   checkpointId: number;
@@ -14,11 +14,21 @@ interface Checkpoint {
   total?: number;
 }
 
+interface Feedback {
+  rating: number;
+  comment: string | null;
+}
+
 export default function Dashboard() {
   const { profile, isLoggedIn, liff } = useLiff();
   const router = useRouter();
   const [progress, setProgress] = useState<Checkpoint[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn && profile) {
@@ -40,10 +50,42 @@ export default function Dashboard() {
       if (data.progress) {
         setProgress(data.progress);
       }
+      if (data.feedback) {
+        setFeedback(data.feedback);
+        setRating(data.feedback.rating);
+        setComment(data.feedback.comment || '');
+      }
     } catch (error) {
       console.error('Fetch progress error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitFeedback = async () => {
+    if (!profile || rating === 0) return;
+    setSubmittingFeedback(true);
+    try {
+      const res = await fetch('/api/user/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lineUserId: profile.userId,
+          rating,
+          comment
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFeedback(data.feedback);
+        alert('ขอบคุณสำหรับคำติชมครับ!');
+      } else {
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      }
+    } catch (error) {
+      console.error('Submit feedback error:', error);
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -65,12 +107,74 @@ export default function Dashboard() {
 
   return (
     <main className="animate-fade-in" style={{ paddingBottom: '40px' }}>
-      <header style={{ marginBottom: '32px', textAlign: 'center' }}>
+      <header style={{ marginBottom: '24px', textAlign: 'center' }}>
         <h1>Achievements</h1>
         <p>Your Pride Journey Progress</p>
       </header>
 
-      {/* Trophy Case Section (Inspired by Image) */}
+      {/* Satisfaction Survey */}
+      <div className="card" style={{ padding: '24px', marginBottom: '32px', textAlign: 'center', border: '2px solid rgba(139, 92, 246, 0.2)' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px', color: 'var(--primary)' }}>
+          แบบประเมินความพึงพอใจ
+        </h2>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+          {feedback ? 'คุณได้ประเมินแล้ว สามารถให้คะแนนใหม่ได้เสมอ' : 'ช่วยประเมินกิจกรรมให้เราหน่อยนะครับ'}
+        </p>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '300px', margin: '0 auto 24px' }}>
+          {[1, 2, 3, 4, 5].map((val) => {
+            const emojis = ['😡', '🙁', '😐', '🙂', '🤩'];
+            return (
+              <button
+                key={val}
+                onClick={() => setRating(val)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '2.5rem',
+                  cursor: 'pointer',
+                  opacity: rating === val ? 1 : 0.4,
+                  transform: rating === val ? 'scale(1.2)' : 'scale(1)',
+                  transition: 'all 0.2s',
+                  filter: rating === val ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' : 'grayscale(100%)',
+                  padding: 0
+                }}
+              >
+                {emojis[val - 1]}
+              </button>
+            );
+          })}
+        </div>
+
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="ข้อเสนอแนะเพิ่มเติม (ไม่บังคับ)"
+          className="input-field"
+          style={{ width: '100%', minHeight: '80px', marginBottom: '16px', padding: '12px', resize: 'none' }}
+        />
+        
+        <button
+          onClick={submitFeedback}
+          disabled={rating === 0 || submittingFeedback}
+          className="btn-primary"
+          style={{ 
+            width: '100%', 
+            padding: '12px', 
+            fontSize: '1rem', 
+            fontWeight: 700,
+            opacity: (rating === 0 || submittingFeedback) ? 0.7 : 1
+          }}
+        >
+          {submittingFeedback ? (
+            <Loader2 size={20} className="animate-spin" style={{ margin: '0 auto' }} />
+          ) : (
+            feedback ? 'อัปเดตการประเมิน' : 'ส่งผลประเมิน'
+          )}
+        </button>
+      </div>
+
+      {/* Trophy Case Section */}
       <div className="card" style={{ 
         background: '#7c2d12', // Wood color
         padding: '30px 15px 15px', 

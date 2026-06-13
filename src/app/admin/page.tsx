@@ -241,6 +241,13 @@ export default function AdminPage() {
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }}>จัดการระบบ (Admin)</h1>
           <p style={{ color: 'var(--text-muted)' }}>รีเซ็ตข้อมูลทั้งหมด หรือลบเป็นรายบุคคล</p>
+          <button 
+            onClick={() => router.push('/admin/questions')}
+            className="btn-primary"
+            style={{ marginTop: '16px', padding: '8px 16px', fontSize: '0.9rem' }}
+          >
+            จัดการคำถาม - คำตอบแต่ละฐาน
+          </button>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button 

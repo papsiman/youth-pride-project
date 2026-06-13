@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
           },
         },
         quizAnswers: true,
+        feedback: true,
       },
     });
 
@@ -26,8 +27,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ registered: false });
     }
 
-    // Get all checkpoints to ensure we return status for all
-    const allCheckpoints = await prisma.checkpoint.findMany();
+    const allCheckpoints = await prisma.checkpoint.findMany({
+      include: {
+        questions: true,
+      }
+    });
     
     const progressStatus = allCheckpoints.map(cp => {
       const userCp = user.progress.find(p => p.checkpointId === cp.id);
@@ -40,7 +44,7 @@ export async function GET(req: NextRequest) {
         completed: userCp?.completed || false,
         completedAt: userCp?.completedAt || null,
         score: correctCount,
-        total: answersForCp.length > 0 ? answersForCp.length : (cp.id === 3 ? 10 : 5)
+        total: (cp as any).questions?.length > 0 ? (cp as any).questions.length : (cp.id === 3 ? 10 : 5)
       };
     });
 
@@ -53,6 +57,7 @@ export async function GET(req: NextRequest) {
         phoneNumber: user.phoneNumber,
       },
       progress: progressStatus,
+      feedback: user.feedback,
     });
   } catch (error) {
     console.error('API Status Error:', error);

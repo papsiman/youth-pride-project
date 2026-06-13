@@ -20,6 +20,7 @@ model User {
   updatedAt     DateTime        @updatedAt
   progress      UserProgress[]
   quizAnswers   QuizAnswer[]
+  feedback      Feedback?
 }
 
 model Checkpoint {
@@ -27,6 +28,19 @@ model Checkpoint {
   name            String
   totalQuestions  Int            @default(5)
   progress        UserProgress[]
+  questions       Question[]
+}
+
+model Question {
+  id            String     @id @default(cuid())
+  checkpointId  Int
+  checkpoint    Checkpoint @relation(fields: [checkpointId], references: [id])
+  text          String
+  type          String     // 'yesno' | 'choice'
+  options       String[]   // For choice
+  correctAnswer String
+  order         Int        @default(0)
+  createdAt     DateTime   @default(now())
 }
 
 model UserProgress {
@@ -50,4 +64,14 @@ model QuizAnswer {
   isCorrect    Boolean
   createdAt    DateTime   @default(now())
   user         User       @relation(fields: [userId], references: [id])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }
